@@ -1,6 +1,6 @@
 # Korrektly SDK
 
-Official TypeScript/JavaScript SDK and tools for [Korrektly](https://korrektly.com) - a modern search platform for documentation and knowledge bases.
+Official TypeScript/JavaScript SDK and tools for [Korrektly](https://korrektly.com) - ai powered search platform.
 
 ## Packages
 
