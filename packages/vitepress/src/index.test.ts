@@ -1,9 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  cleanText,
-  extractHierarchy,
-  generateTrackingId,
-} from "./utils.js";
+import { cleanText, extractHierarchy, generateTrackingId } from "./utils.js";
 
 describe("@korrektly/vitepress", () => {
   describe("cleanText", () => {
