@@ -163,11 +163,4 @@ MIT
 ## Links
 
 - [Korrektly Platform](https://korrektly.com)
-- [Documentation](https://docs.korrektly.com)
-- [GitHub](https://github.com/korrektly/korrektly-sdk)
-
-## Credits
-
-Built with [Bun](https://bun.sh), [Turborepo](https://turbo.build/repo), and [Biome](https://biomejs.dev).
-
-The VitePress adapter is based on [Trieve's VitePress adapter](https://github.com/devflowinc/trieve).
+- [GitHub](https://github.com/korrektly/ts-sdk)

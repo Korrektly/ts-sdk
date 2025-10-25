@@ -246,7 +246,7 @@ MIT
 ## Links
 
 - [Korrektly](https://korrektly.com)
-- [GitHub](https://github.com/korrektly/korrektly-sdk)
+- [GitHub](https://github.com/korrektly/ts-sdk)
 
 ## Credits
 This package is based on Trieve's VitePress adapter.

@@ -25,4 +25,4 @@ jobs:
               run: bun install
 
             - name: Lint, Type Check, and Test
-              run: turbo run lint check-types test --filter='@korrektly/*'
+              run: bun run turbo run lint check-types test --filter='@korrektly/*'
