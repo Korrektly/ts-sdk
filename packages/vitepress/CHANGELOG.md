@@ -1,5 +1,11 @@
 # @korrektly/vitepress
 
+## 0.1.1
+
+### Patch Changes
+
+- d8c54ef: fix: use npm dependency for korrektly sdk
+
 ## 0.1.0
 
 ### Minor Changes
