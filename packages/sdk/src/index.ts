@@ -265,4 +265,4 @@ export class Korrektly {
 }
 
 export default Korrektly;
-export * from "./types";
+export * from "./types.js";

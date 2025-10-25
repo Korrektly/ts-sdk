@@ -28,20 +28,17 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --sourcemap --minify && bun build ./src/types.ts --outdir ./dist --target node --format esm && bun run build:types",
+    "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap",
+    "dev": "bun build ./src/index.ts --outdir ./dist --target node --format esm --sourcemap --watch",
     "test": "bun test",
     "check": "biome check --write .",
-    "check-types": "tsc --noEmit",
     "biome:ci": "biome ci .",
     "lint": "biome check ."
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.7",
-    "@types/bun": "latest",
-    "typescript": "^5.9.2"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "@types/bun": "^1.3.1",
+    "typescript": "^5.9.3"
   }
 }

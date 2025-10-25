@@ -7,7 +7,6 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "check": "turbo run check",
-    "check-types": "turbo run check-types",
     "biome:check": "biome check",
     "biome:write": "biome check --write",
     "biome:ci": "biome ci",
@@ -16,8 +15,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.0",
-    "turbo": "^2.5.8",
-    "typescript": "5.9.2"
+    "turbo": "^2.5.8"
   },
   "engines": {
     "node": ">=18"

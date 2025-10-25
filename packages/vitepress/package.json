@@ -1,0 +1,63 @@
+{
+  "name": "@korrektly/vitepress",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "VitePress documentation adapter for Korrektly - index your docs and OpenAPI specs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "korrektly-vitepress": "./dist/cli.js"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Aditya Tripathi",
+    "email": "aditya@climactic.co"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts ./src/cli.ts --outdir ./dist --target node --format esm --sourcemap --minify && bun run build:types",
+    "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap",
+    "dev": "bun build ./src/index.ts ./src/cli.ts --outdir ./dist --target node --format esm --sourcemap --watch",
+    "test": "bun test",
+    "check": "biome check --write .",
+    "biome:ci": "biome ci .",
+    "lint": "biome check ."
+  },
+  "dependencies": {
+    "@korrektly/sdk": "workspace:*",
+    "commander": "^14.0.2",
+    "yaml": "^2.8.1",
+    "marked": "^16.4.1",
+    "linkedom": "^0.18.12",
+    "@apidevtools/json-schema-ref-parser": "^14.2.1",
+    "pluralize": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.1",
+    "@types/pluralize": "^0.0.33",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "korrektly",
+    "vitepress",
+    "documentation",
+    "search",
+    "openapi",
+    "adapter",
+    "cli"
+  ]
+}
