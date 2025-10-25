@@ -37,6 +37,9 @@ jobs:
                   echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
                   echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
 
+            - name: Build Packages
+              run: turbo run build --filter='@korrektly/*'
+
             - name: Create Release Pull Request or Publish to npm
               id: changesets
               uses: changesets/action@v1

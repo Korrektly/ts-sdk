@@ -24,8 +24,5 @@ jobs:
             - name: Install Dependencies
               run: bun install
 
-            - name: Lint
-              run: bun run biome:ci
-
-            - name: Run Tests
-              run: bun test
+            - name: Lint, Type Check, and Test
+              run: turbo run lint check-types test --filter='@korrektly/*'

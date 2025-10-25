@@ -1,244 +1,135 @@
-# @korrektly/sdk
+# Turborepo starter
 
-Official TypeScript/JavaScript SDK for the Korrektly API.
+This Turborepo starter is maintained by the Turborepo core team.
 
-## Installation
+## Using this example
 
-```bash
-bun install @korrektly/sdk
+Run the following command:
+
+```sh
+npx create-turbo@latest
 ```
 
-Or with npm/pnpm/yarn:
-```bash
-npm install @korrektly/sdk
-pnpm install @korrektly/sdk
-yarn add @korrektly/sdk
+## What's inside?
+
+This Turborepo includes the following packages/apps:
+
+### Apps and Packages
+
+- `docs`: a [Next.js](https://nextjs.org/) app
+- `web`: another [Next.js](https://nextjs.org/) app
+- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+
+Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+
+### Utilities
+
+This Turborepo has some additional tools already setup for you:
+
+- [TypeScript](https://www.typescriptlang.org/) for static type checking
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting
+
+### Build
+
+To build all apps and packages, run the following command:
+
+```
+cd my-turborepo
+
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo build
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo build
+yarn dlx turbo build
+pnpm exec turbo build
 ```
 
-## Quick Start
+You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
 
-```typescript
-import { Korrektly } from '@korrektly/sdk';
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo build --filter=docs
 
-const client = new Korrektly({
-  apiToken: 'your-api-token',
-});
-
-// Search your dataset
-const results = await client.search('dataset-id', {
-  query: 'machine learning',
-  limit: 10
-});
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo build --filter=docs
+yarn exec turbo build --filter=docs
+pnpm exec turbo build --filter=docs
 ```
 
-## Features
+### Develop
 
-### Search
+To develop all apps and packages, run the following command:
 
-Perform hybrid, semantic, or full-text search with advanced filtering capabilities.
+```
+cd my-turborepo
 
-**Supported search types:**
-- **Hybrid** (default) - Combines semantic and full-text search
-- **Semantic** - Dense embedding-based similarity search
-- **Fulltext** - Traditional full-text search
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo dev
 
-**Example:**
-```typescript
-const results = await client.search('dataset-id', {
-  query: 'natural language processing',
-  search_type: 'semantic',
-  limit: 20,
-  filters: {
-    tags: ['ai', 'nlp'],
-    metadata: { category: 'tutorial' }
-  }
-});
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo dev
+yarn exec turbo dev
+pnpm exec turbo dev
 ```
 
-**Advanced filtering with boolean queries:**
-```typescript
-const results = await client.search('dataset-id', {
-  query: 'api documentation',
-  filters: {
-    must: [
-      { tags: ['documentation'] }
-    ],
-    should: [
-      { tags: ['api'] },
-      { tags: ['rest'] }
-    ],
-    minimum_should_match: 1,
-    must_not: [
-      { tags: ['deprecated'] }
-    ]
-  }
-});
+You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo dev --filter=web
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo dev --filter=web
+yarn exec turbo dev --filter=web
+pnpm exec turbo dev --filter=web
 ```
 
-**Range filters:**
-```typescript
-const results = await client.search('dataset-id', {
-  query: 'recent updates',
-  filters: {
-    must: [
-      {
-        range: {
-          timestamp: {
-            gte: '2024-01-01T00:00:00Z'
-          }
-        }
-      }
-    ]
-  }
-});
+### Remote Caching
+
+> [!TIP]
+> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+
+Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+
+By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+
+```
+cd my-turborepo
+
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo login
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo login
+yarn exec turbo login
+pnpm exec turbo login
 ```
 
-### Autocomplete
+This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
 
-Get prefix-based autocomplete suggestions with optional trigram similarity fallback.
+Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
 
-**Features:**
-- Prefix matching with configurable limits
-- Trigram similarity fallback for better results
-- Tag-based filtering
-- Configurable similarity thresholds
-- Content-only minimal response mode
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo link
 
-**Example:**
-```typescript
-const suggestions = await client.autocomplete('dataset-id', {
-  query: 'hel',
-  limit: 5,
-  extend_results: true,
-  score_threshold: 0.5
-});
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo link
+yarn exec turbo link
+pnpm exec turbo link
 ```
 
-**With filters:**
-```typescript
-const filtered = await client.autocomplete('dataset-id', {
-  query: 'search',
-  limit: 10,
-  filters: {
-    tags: ['documentation', 'api']
-  }
-});
-```
+## Useful Links
 
-**Minimal response (content only):**
-```typescript
-const minimal = await client.autocomplete('dataset-id', {
-  query: 'test',
-  content_only: true  // Returns array of strings only
-});
-```
+Learn more about the power of Turborepo:
 
-### Chunk Management
-
-Create and manage chunks with rich metadata and categorization.
-
-**Single chunk creation:**
-```typescript
-const result = await client.createChunks('dataset-id', {
-  chunk_html: '<p>Hello world</p>',
-  tracking_id: 'doc-001',
-  tag_set: ['documentation'],
-  metadata: { version: '1.0', author: 'John' },
-  weight: 1.2,
-  timestamp: '2024-01-15T12:00:00Z'
-});
-```
-
-**Batch operations (up to 120 chunks):**
-```typescript
-const batchResult = await client.createChunks('dataset-id', {
-  chunks: [
-    {
-      chunk_html: '<p>First chunk</p>',
-      tracking_id: 'chunk-001',
-      tag_set: ['test']
-    },
-    {
-      chunk_html: '<p>Second chunk</p>',
-      tracking_id: 'chunk-002',
-      weight: 1.5
-    }
-  ]
-});
-```
-
-**Upsert by tracking ID:**
-```typescript
-const upserted = await client.createChunks('dataset-id', {
-  chunk_html: '<p>Updated content</p>',
-  tracking_id: 'doc-001',
-  upsert_by_tracking_id: true  // Updates if exists
-});
-```
-
-**Supported chunk properties:**
-- `chunk_html` - HTML content (max 65,535 chars)
-- `tracking_id` - Custom identifier (max 255 chars)
-- `tag_set` - Tags for categorization
-- `metadata` - Key-value pairs for custom data
-- `weight` - Ranking weight (0-2, default 1.0)
-- `num_value` - Numeric value for range filtering
-- `timestamp` - ISO 8601 timestamp for recency bias
-- `source_url` - Reference URL (max 2,048 chars)
-- `group_tracking_ids` - Group associations
-- `image_urls` - Associated images
-- `semantic_content` - Content for semantic embedding
-- `fulltext_content` - Content for full-text search
-
-## API Reference
-
-### Client Initialization
-
-```typescript
-new Korrektly(config: KorrektlyConfig)
-```
-
-**Config:**
-- `apiToken` (required) - Your Korrektly API token
-- `baseUrl` (optional) - API base URL (defaults to 'https://korrektly.com')
-
-### Methods
-
-#### `search(datasetId: string, request: SearchRequest): Promise<SearchResponse>`
-
-Search chunks within a dataset with advanced filtering.
-
-#### `autocomplete(datasetId: string, request: AutocompleteRequest): Promise<AutocompleteResponseUnion>`
-
-Get autocomplete suggestions for a query.
-
-#### `createChunks(datasetId: string, request: ChunkRequest): Promise<ChunkResponse>`
-
-Create or upsert chunks (single or batch).
-
-## Development
-
-This SDK is built with [Bun](https://bun.com).
-
-**Install dependencies:**
-```bash
-bun install
-```
-
-**Run tests:**
-```bash
-bun test
-```
-
-**Format code:**
-```bash
-bun run check
-```
-
-## TypeScript Support
-
-The SDK is written in TypeScript and includes comprehensive type definitions for all API requests and responses.
-
-## License
-
-MIT
+- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
+- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
+- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
+- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
+- [Configuration Options](https://turborepo.com/docs/reference/configuration)
+- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
