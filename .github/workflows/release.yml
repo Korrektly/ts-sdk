@@ -1,52 +1,54 @@
 name: Release Package
 
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-    release:
-        name: Release
-        runs-on: ubuntu-latest
-        permissions:
-            id-token: write
-            contents: write
-            packages: write
-            pull-requests: write
-            issues: read
-        steps:
-            - name: Checkout Repo
-              uses: actions/checkout@v5
-              with:
-                  # This is important for the changeset action to work properly
-                  fetch-depth: 0
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      packages: write
+      pull-requests: write
+      issues: read
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+        with:
+          # This is important for the changeset action to work properly
+          fetch-depth: 0
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Install Bun Dependencies
-              run: bun install
+      - name: Install Bun Dependencies
+        run: bun install
 
-            - name: Setup NPM Authentication
-              run: |
-                  echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-                  echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+      - name: Setup NPM Authentication
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
 
-            - name: Build Packages
-              run: bun run turbo run build --filter='@korrektly/*'
+      - name: Build Packages
+        run: bun run turbo run build --filter='@korrektly/*'
 
-            - name: Create Release Pull Request or Publish to npm
-              id: changesets
-              uses: changesets/action@v1
-              with:
-                  # This expects you to have a script called release which does a build for your packages and calls changeset publish
-                  publish: bun run publish-packages
-                  createGithubReleases: true
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          # This expects you to have a script called release which does a build for your packages and calls changeset publish
+          publish: bun run publish-packages
+          createGithubReleases: true
+          # Don't skip CI on version commits so the release workflow runs after PR merge
+          commit: "[ci] release"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
