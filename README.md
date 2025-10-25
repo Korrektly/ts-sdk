@@ -1,135 +1,173 @@
-# Turborepo starter
+# Korrektly SDK
 
-This Turborepo starter is maintained by the Turborepo core team.
+Official TypeScript/JavaScript SDK and tools for [Korrektly](https://korrektly.com) - a modern search platform for documentation and knowledge bases.
 
-## Using this example
+## Packages
 
-Run the following command:
+This monorepo contains the following packages:
 
-```sh
-npx create-turbo@latest
+### [@korrektly/sdk](./packages/sdk)
+
+Core TypeScript/JavaScript SDK for the Korrektly API.
+
+**Features:**
+- Hybrid, semantic, and full-text search
+- Advanced filtering with boolean queries
+- Autocomplete with prefix matching and trigram similarity
+- Chunk management with rich metadata
+- Full TypeScript support
+
+**Installation:**
+```bash
+bun add @korrektly/sdk
+# or npm install @korrektly/sdk
 ```
 
-## What's inside?
+**Quick Start:**
+```typescript
+import { Korrektly } from '@korrektly/sdk';
 
-This Turborepo includes the following packages/apps:
+const client = new Korrektly({
+  apiToken: 'your-api-token',
+});
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+const results = await client.search('dataset-id', {
+  query: 'machine learning',
+  limit: 10
+});
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+[View full SDK documentation →](./packages/sdk)
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+### [@korrektly/vitepress](./packages/vitepress)
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+VitePress documentation adapter for automatically indexing your documentation and OpenAPI specifications.
 
-### Develop
+**Features:**
+- Automatic markdown/MDX indexing
+- OpenAPI/Swagger spec integration
+- Smart content chunking by headings
+- Frontmatter support
+- Batch uploads with retry logic
+- CLI and programmatic usage
 
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+**Installation:**
+```bash
+bun add @korrektly/vitepress
+# or npm install @korrektly/vitepress
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+**CLI Usage:**
+```bash
+export KORREKTLY_API_TOKEN="your-api-token"
+export KORREKTLY_DATASET_ID="your-dataset-id"
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+korrektly-vitepress \
+  --path ./docs \
+  --root-url https://docs.example.com \
+  --openapi-spec https://api.example.com/openapi.json
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+[View full VitePress adapter documentation →](./packages/vitepress)
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## Development
+
+This repository uses [Turborepo](https://turbo.build/repo) and [Bun](https://bun.sh) for development.
+
+### Prerequisites
+
+- [Bun](https://bun.sh) 1.3.1 or later
+- Node.js 18 or later (for compatibility testing)
+
+### Getting Started
+
+**Install dependencies:**
+```bash
+bun install
+```
+
+**Build all packages:**
+```bash
+bun run build
+```
+
+**Run tests:**
+```bash
+bun test
+```
+
+**Lint and format:**
+```bash
+bun run check
+```
+
+### Working with Packages
+
+**Build a specific package:**
+```bash
+turbo build --filter=@korrektly/sdk
+```
+
+**Run tests for a specific package:**
+```bash
+turbo test --filter=@korrektly/vitepress
+```
+
+**Develop with watch mode:**
+```bash
+turbo dev --filter=@korrektly/sdk
+```
+
+## Publishing
+
+This repository uses [Changesets](https://github.com/changesets/changesets) for version management and publishing.
+
+**Create a changeset:**
+```bash
+bun run changeset
+```
+
+**Publish packages:**
+```bash
+bun run publish-packages
+```
+
+## Repository Structure
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+korrektly-sdk/
+├── packages/
+│   ├── sdk/              # @korrektly/sdk - Core API client
+│   └── vitepress/        # @korrektly/vitepress - VitePress adapter
+├── .changeset/           # Changesets for version management
+├── .github/              # GitHub Actions workflows
+├── package.json          # Root package configuration
+├── turbo.json           # Turborepo configuration
+└── biome.json           # Biome linter/formatter config
 ```
 
-## Useful Links
+## Scripts
 
-Learn more about the power of Turborepo:
+- `bun run build` - Build all packages
+- `bun run dev` - Run all packages in watch mode
+- `bun run test` - Run tests for all packages
+- `bun run check` - Lint and format all packages
+- `bun run lint` - Lint all packages (no fixes)
+- `bun run changeset` - Create a changeset for version management
+- `bun run publish-packages` - Publish packages to npm
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## License
+
+MIT
+
+## Links
+
+- [Korrektly Platform](https://korrektly.com)
+- [Documentation](https://docs.korrektly.com)
+- [GitHub](https://github.com/korrektly/korrektly-sdk)
+
+## Credits
+
+Built with [Bun](https://bun.sh), [Turborepo](https://turbo.build/repo), and [Biome](https://biomejs.dev).
+
+The VitePress adapter is based on [Trieve's VitePress adapter](https://github.com/devflowinc/trieve).
