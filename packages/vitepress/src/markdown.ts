@@ -51,7 +51,9 @@ function parseFrontmatter(fileContent: string): {
  * Split HTML content into heading sections using linkedom
  */
 function splitIntoSections(html: string): HeadingSection[] {
-  const { document } = parseHTML(html);
+  const { document } = parseHTML(
+    `<!DOCTYPE html><html><body>${html}</body></html>`,
+  );
   const body = document.body;
   const sections: HeadingSection[] = [];
 
@@ -111,29 +113,25 @@ export async function extractChunksFromMarkdown(
     const html = await marked(content);
 
     // Prepend title and subtitle to HTML if they exist
-    const { document } = parseHTML("<div></div>");
-    const container = document.querySelector("div");
-    if (!container) throw new Error("Failed to create container");
+    let finalHtml = html;
 
-    if (frontmatter.subtitle) {
-      const subtitleEl = document.createElement("h2");
-      subtitleEl.textContent = frontmatter.subtitle;
-      container.appendChild(subtitleEl);
+    if (frontmatter.title || frontmatter.subtitle) {
+      const parts: string[] = [];
+
+      if (frontmatter.title) {
+        parts.push(`<h1>${frontmatter.title}</h1>`);
+      }
+
+      if (frontmatter.subtitle) {
+        parts.push(`<h2>${frontmatter.subtitle}</h2>`);
+      }
+
+      parts.push(html);
+      finalHtml = parts.join("\n");
     }
-
-    if (frontmatter.title) {
-      const titleEl = document.createElement("h1");
-      titleEl.textContent = frontmatter.title;
-      container.insertBefore(titleEl, container.firstChild);
-    }
-
-    // Add markdown content
-    const contentDiv = document.createElement("div");
-    contentDiv.innerHTML = html;
-    container.appendChild(contentDiv);
 
     // Split into sections
-    const sections = splitIntoSections(container.innerHTML);
+    const sections = splitIntoSections(finalHtml);
 
     // Generate chunks
     const chunks: ChunkInput[] = [];

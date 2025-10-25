@@ -113,6 +113,10 @@ async function main() {
       'API reference path prefix (default: "api")',
       "api",
     )
+    .option(
+      "--no-gitignore",
+      "Disable .gitignore file respecting (enabled by default)",
+    )
     .parse(process.argv);
 
   const options = program.opts();
@@ -159,8 +163,13 @@ async function main() {
   // Process markdown files
   console.log("\n📄 Processing markdown files...");
   try {
-    const markdownPaths = await extractMarkdownPaths(options.path);
+    const markdownPaths = await extractMarkdownPaths(options.path, {
+      respectGitignore: options.gitignore !== false,
+    });
     console.log(`  Found ${markdownPaths.length} markdown files`);
+    if (options.gitignore !== false) {
+      console.log("  Respecting .gitignore patterns");
+    }
 
     for (const path of markdownPaths) {
       const chunks = await extractChunksFromMarkdown(path, options.rootUrl);
