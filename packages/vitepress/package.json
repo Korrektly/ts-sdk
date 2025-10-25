@@ -1,6 +1,7 @@
 {
   "name": "@korrektly/vitepress",
   "version": "0.1.0",
+  "private": false,
   "type": "module",
   "description": "VitePress documentation adapter for Korrektly - index your docs and OpenAPI specs",
   "main": "./dist/index.js",
