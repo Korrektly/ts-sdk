@@ -1,6 +1,6 @@
 {
   "name": "@korrektly/vitepress",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": false,
   "type": "module",
   "description": "VitePress documentation adapter for Korrektly - index your docs and OpenAPI specs",
@@ -36,7 +36,7 @@
     "lint": "biome check ."
   },
   "dependencies": {
-    "@korrektly/sdk": "0.1.0",
+    "@korrektly/sdk": "0.2.0",
     "commander": "^14.0.2",
     "yaml": "^2.8.1",
     "marked": "^16.4.1",
