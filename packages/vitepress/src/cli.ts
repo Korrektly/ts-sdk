@@ -47,7 +47,9 @@ async function uploadChunks(
     `\nUploading ${chunks.length} chunks in batches of ${batchSize}...`,
   );
   if (upsert) {
-    console.log("  Upsert mode: enabled (will update existing chunks by tracking_id)");
+    console.log(
+      "  Upsert mode: enabled (will update existing chunks by tracking_id)",
+    );
   }
 
   for (let i = 0; i < chunks.length; i += batchSize) {
