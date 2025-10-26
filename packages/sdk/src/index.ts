@@ -86,8 +86,29 @@ export class Korrektly {
     });
 
     if (!response.ok) {
+      // Try to get error details from response body
+      let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
+      try {
+        const contentType = response.headers.get("content-type");
+        if (contentType?.includes("application/json")) {
+          const errorData = await response.json();
+          errorMessage += `\nError details: ${JSON.stringify(errorData)}`;
+        } else {
+          const errorText = await response.text();
+          errorMessage += `\nResponse body: ${errorText.substring(0, 500)}`;
+        }
+      } catch {
+        // If we can't parse the error response, continue with basic error
+      }
+      throw new Error(errorMessage);
+    }
+
+    // Validate response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType?.includes("application/json")) {
+      const responseText = await response.text();
       throw new Error(
-        `API request failed: ${response.status} ${response.statusText}`,
+        `Expected JSON response but got ${contentType}.\nResponse body: ${responseText.substring(0, 500)}`,
       );
     }
 

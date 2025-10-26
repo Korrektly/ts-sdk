@@ -39,12 +39,16 @@ async function uploadChunks(
   client: Korrektly,
   datasetId: string,
   chunks: ChunkInput[],
-  batchSize = 120,
+  batchSize = 80,
   maxRetries = 3,
+  upsert = true,
 ): Promise<void> {
   console.log(
     `\nUploading ${chunks.length} chunks in batches of ${batchSize}...`,
   );
+  if (upsert) {
+    console.log("  Upsert mode: enabled (will update existing chunks by tracking_id)");
+  }
 
   for (let i = 0; i < chunks.length; i += batchSize) {
     const batch = chunks.slice(i, i + batchSize);
@@ -58,7 +62,10 @@ async function uploadChunks(
 
     while (retries <= maxRetries && !success) {
       try {
-        await client.createChunks(datasetId, { chunks: batch });
+        await client.createChunks(datasetId, {
+          chunks: batch,
+          upsert_by_tracking_id: upsert,
+        });
         console.log(`  ✓ Batch uploaded successfully`);
         success = true;
       } catch (err) {
@@ -112,6 +119,15 @@ async function main() {
       "-a, --api-ref-path <path>",
       'API reference path prefix (default: "api")',
       "api",
+    )
+    .option(
+      "-b, --batch-size <number>",
+      "Number of chunks to upload per batch (default: 50)",
+      "50",
+    )
+    .option(
+      "--no-upsert",
+      "Disable upsert by tracking_id (upsert enabled by default)",
     )
     .option(
       "--no-gitignore",
@@ -203,7 +219,9 @@ async function main() {
     process.exit(0);
   }
 
-  await uploadChunks(client, datasetId, uniqueChunks);
+  const batchSize = parseInt(options.batchSize, 10);
+  const upsert = options.upsert !== false; // upsert is true by default unless --no-upsert is passed
+  await uploadChunks(client, datasetId, uniqueChunks, batchSize, 3, upsert);
 
   console.log("\n✨ Done!");
   process.exit(0);
