@@ -134,7 +134,7 @@ export function generateTrackingId(...parts: string[]): string {
     .filter(Boolean)
     .join("-")
     .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9-_]/g, "")
+    .replace(/[^a-zA-Z0-9-_/]/g, "")
     .toLowerCase();
 }
 

@@ -109,7 +109,7 @@ export interface ChunkInput {
   tag_set?: string[];
 
   /** Key-value metadata pairs */
-  metadata?: Record<string, string | number | boolean>;
+  metadata?: Record<string, string | number | boolean | string[]>;
 
   /** Chunk weight for ranking (min: 0, max: 2, default: 1.0) */
   weight?: number;
@@ -137,6 +137,9 @@ export interface ChunkInput {
 
   /** Update existing chunk if tracking_id matches (default: false) */
   upsert_by_tracking_id?: boolean;
+
+  /** Refresh updated_at timestamp when duplicate is found (default: false) */
+  refresh_on_duplicate?: boolean;
 }
 
 /**
@@ -151,6 +154,9 @@ export type ChunkRequest =
 
       /** Global upsert flag for all chunks (default: false) */
       upsert_by_tracking_id?: boolean;
+
+      /** Global refresh_on_duplicate flag for all chunks (default: false) */
+      refresh_on_duplicate?: boolean;
     };
 
 /**
