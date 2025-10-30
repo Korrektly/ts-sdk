@@ -1,5 +1,12 @@
 # @korrektly/vitepress
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [ea2af33]
+  - @korrektly/sdk@0.1.2
+
 ## 0.1.3
 
 ### Patch Changes
