@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { relative, normalize, resolve } from "node:path";
 import type { ChunkInput } from "@korrektly/sdk";
 import { parseHTML } from "linkedom";
 import { marked } from "marked";
@@ -104,9 +105,20 @@ function splitIntoSections(html: string): HeadingSection[] {
 export async function extractChunksFromMarkdown(
   filePath: string,
   rootUrl?: string,
+  basePath?: string,
 ): Promise<ChunkInput[]> {
   try {
     const fileContent = await readFile(filePath, "utf-8");
+
+    // Skip Vue component files (VitePress dynamic routes with <script setup>)
+    if (
+      fileContent.includes("<script setup") ||
+      fileContent.includes("<OAOperation") ||
+      /<[A-Z]\w+\s+:/.test(fileContent) // Vue component syntax like <Component :prop="value">
+    ) {
+      return [];
+    }
+
     const { frontmatter, content } = parseFrontmatter(fileContent);
 
     // Convert markdown to HTML
@@ -135,10 +147,41 @@ export async function extractChunksFromMarkdown(
 
     // Generate chunks
     const chunks: ChunkInput[] = [];
-    const hierarchy = extractHierarchy(filePath);
-    const slug = frontmatter.slug ?? filePath.replace(/\.mdx?$/, "");
-    const baseUrl = slug.startsWith("/") ? slug : `/${slug}`;
+
+    // Compute relative path for slug (relative to base docs directory)
+    // Normalize and resolve paths to handle ~ and symlinks
+    const normalizedFilePath = resolve(filePath);
+    const normalizedBasePath = basePath ? resolve(basePath) : null;
+
+    let relativePath = normalizedBasePath
+      ? relative(normalizedBasePath, normalizedFilePath)
+      : normalizedFilePath;
+
+    // Normalize the relative path and convert backslashes to forward slashes
+    relativePath = normalize(relativePath).replace(/\\/g, "/");
+
+    // Remove any leading ../ or ./ to ensure valid URLs
+    relativePath = relativePath.replace(/^(\.\.(\/|\\))+/, "").replace(/^\.\//, "");
+
+    const hierarchy = extractHierarchy(relativePath);
+    const slug = frontmatter.slug ?? relativePath.replace(/\.mdx?$/, "");
+
+    // Ensure slug doesn't start with / if we're going to add one
+    const cleanSlug = slug.replace(/^\/+/, "");
+    const baseUrl = `/${cleanSlug}`;
     const sourceUrl = rootUrl ? `${rootUrl}${baseUrl}` : baseUrl;
+
+    // Validate the source URL
+    if (rootUrl) {
+      try {
+        new URL(sourceUrl);
+      } catch {
+        console.warn(
+          `Skipping file ${filePath}: Invalid source URL generated: ${sourceUrl}`,
+        );
+        return [];
+      }
+    }
 
     for (const section of sections) {
       if (!section.heading) continue;
@@ -154,9 +197,10 @@ export async function extractChunksFromMarkdown(
       const semanticContent = semanticParts.join(" ");
 
       // Build metadata
-      const metadata: Record<string, string | number | boolean> = {
+      const metadata: Record<string, string | number | boolean | string[]> = {
         heading: section.heading,
-        hierarchy: hierarchy.join(" > "),
+        url: sourceUrl,
+        hierarchy: hierarchy,
       };
 
       if (frontmatter.title) metadata.title = frontmatter.title;
@@ -176,7 +220,7 @@ export async function extractChunksFromMarkdown(
         semantic_content: semanticContent,
         fulltext_content: `${section.heading} ${section.body}`,
         weight: frontmatter.weight ?? (section.level === 1 ? 1.2 : 1.0),
-        upsert_by_tracking_id: true,
+        refresh_on_duplicate: true,
         group_tracking_ids: [filePath],
       };
 

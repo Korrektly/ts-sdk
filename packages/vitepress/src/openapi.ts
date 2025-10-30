@@ -77,21 +77,34 @@ export async function extractChunksFromOpenAPI(
           : path;
 
         // Build page link
-        const apiParent = apiRefParent ?? "api";
-        const pageLink = siteUrl
-          ? `${siteUrl}/${apiParent}/${operationId}`
-          : `/${apiParent}/${operationId}`;
+        // The apiRefParent is the full URL path (e.g., "docs/api-reference/api/operations")
+        // Final URL: https://coolify.io/docs/api-reference/api/operations/{operationId}
+        const apiPath = apiRefParent ?? "api";
+
+        // Normalize siteUrl to remove trailing slashes
+        const normalizedSiteUrl = siteUrl?.replace(/\/+$/, "");
+        const pageLink = normalizedSiteUrl
+          ? `${normalizedSiteUrl}/${apiPath}/${operationId}`
+          : `/${apiPath}/${operationId}`;
 
         // Create metadata
-        const metadata: Record<string, string | number | boolean> = {
+        // Build hierarchy by splitting the apiPath
+        // e.g., "docs/api-reference/api/operations" -> ["docs", "api", "operations", operationId]
+        const pathParts = apiPath.split("/");
+        const hierarchyParts = pathParts.filter(part =>
+          part !== "api-reference"
+        );
+
+        const metadata: Record<string, string | number | boolean | string[]> = {
           operation_id: operationId,
           method: method.toUpperCase(),
           path,
           endpoint,
+          url: pageLink,
           hierarchy: [
-            apiParent,
-            summary?.split(" ").join("-").toLowerCase() ?? path,
-          ].join(" > "),
+            ...hierarchyParts,
+            operationId,
+          ],
         };
 
         if (summary) metadata.summary = summary;
@@ -125,8 +138,7 @@ export async function extractChunksFromOpenAPI(
           metadata,
           semantic_content: semanticContent,
           fulltext_content: semanticContent,
-          weight: 1.2, // Boost API endpoints slightly
-          upsert_by_tracking_id: true,
+          refresh_on_duplicate: true,
           group_tracking_ids: [path],
         };
 

@@ -1,11 +1,23 @@
 #!/usr/bin/env node
 
+import { homedir } from "node:os";
+import { resolve } from "node:path";
 import type { ChunkInput } from "@korrektly/sdk";
 import { Korrektly } from "@korrektly/sdk";
 import { Command } from "commander";
 import { extractChunksFromMarkdown } from "./markdown.js";
 import { extractChunksFromOpenAPI } from "./openapi.js";
 import { extractMarkdownPaths } from "./utils.js";
+
+/**
+ * Expand tilde (~) in file paths
+ */
+function expandTilde(filePath: string): string {
+  if (filePath.startsWith("~/") || filePath === "~") {
+    return filePath.replace("~", homedir());
+  }
+  return filePath;
+}
 
 // Environment variables
 const KORREKTLY_API_TOKEN = process.env.KORREKTLY_API_TOKEN;
@@ -48,7 +60,7 @@ async function uploadChunks(
   );
   if (upsert) {
     console.log(
-      "  Upsert mode: enabled (will update existing chunks by tracking_id)",
+      "Refresh mode: enabled (will update existing chunks data by content_hash)",
     );
   }
 
@@ -66,7 +78,7 @@ async function uploadChunks(
       try {
         await client.createChunks(datasetId, {
           chunks: batch,
-          upsert_by_tracking_id: upsert,
+          refresh_on_duplicate: upsert,
         });
         console.log(`  ✓ Batch uploaded successfully`);
         success = true;
@@ -76,6 +88,25 @@ async function uploadChunks(
           `  ✗ Batch upload failed (attempt ${retries}/${maxRetries}):`,
           err,
         );
+
+        // If the error mentions a specific chunk index, show that chunk's details
+        const errorStr = String(err);
+        const chunkIndexMatch = errorStr.match(/chunks\.(\d+)/);
+        if (chunkIndexMatch && retries === 1) {
+          const chunkIndex = parseInt(chunkIndexMatch[1], 10);
+          if (chunkIndex < batch.length) {
+            console.error(
+              `\n  🔍 Problematic chunk at index ${chunkIndex}:`,
+            );
+            console.error(
+              `     source_url: ${batch[chunkIndex].source_url || "(none)"}`,
+            );
+            console.error(
+              `     tracking_id: ${batch[chunkIndex].tracking_id}`,
+            );
+            console.error(`     chunk_html: ${batch[chunkIndex].chunk_html?.substring(0, 100)}...`);
+          }
+        }
 
         if (retries <= maxRetries) {
           const waitTime = Math.min(1000 * 2 ** (retries - 1), 10000);
@@ -151,6 +182,9 @@ async function main() {
     process.exit(1);
   }
 
+  // Expand tilde in path and resolve to absolute path
+  const docsPath = resolve(expandTilde(options.path));
+
   // Initialize Korrektly client
   const client = new Korrektly({
     apiToken: KORREKTLY_API_TOKEN as string,
@@ -160,7 +194,7 @@ async function main() {
   console.log("Korrektly VitePress Adapter");
   console.log("===========================");
   console.log(`Dataset ID: ${datasetId}`);
-  console.log(`Docs path: ${options.path}`);
+  console.log(`Docs path: ${docsPath}`);
   if (options.rootUrl) console.log(`Root URL: ${options.rootUrl}`);
   if (options.openapiSpec) console.log(`OpenAPI spec: ${options.openapiSpec}`);
 
@@ -181,16 +215,21 @@ async function main() {
   // Process markdown files
   console.log("\n📄 Processing markdown files...");
   try {
-    const markdownPaths = await extractMarkdownPaths(options.path, {
+    const markdownPaths = await extractMarkdownPaths(docsPath, {
       respectGitignore: options.gitignore !== false,
     });
     console.log(`  Found ${markdownPaths.length} markdown files`);
+    console.log("  Skipping Vue component files (files with <script setup>)");
     if (options.gitignore !== false) {
       console.log("  Respecting .gitignore patterns");
     }
 
     for (const path of markdownPaths) {
-      const chunks = await extractChunksFromMarkdown(path, options.rootUrl);
+      const chunks = await extractChunksFromMarkdown(
+        path,
+        options.rootUrl,
+        docsPath,
+      );
       allChunks = allChunks.concat(chunks);
     }
 
@@ -215,15 +254,69 @@ async function main() {
 
   console.log(`\n📊 Total unique chunks: ${uniqueChunks.length}`);
 
+  // Validate all chunks have valid source URLs
+  console.log("\n🔍 Validating chunk URLs...");
+
+  // Show sample URLs for debugging
+  console.log("  Sample URLs being generated:");
+  uniqueChunks.slice(0, 3).forEach((chunk, i) => {
+    console.log(`    ${i + 1}. ${chunk.source_url || "(no URL)"}`);
+  });
+
+  const validChunks = uniqueChunks.filter((chunk, index) => {
+    if (chunk.source_url) {
+      // Check for common URL issues
+      const url = chunk.source_url;
+
+      // Check 1: Valid URL format
+      try {
+        new URL(url);
+      } catch {
+        console.warn(
+          `  ⚠️  Skipping chunk ${index + 1}: Invalid URL format: ${url}`,
+        );
+        console.warn(`     Tracking ID: ${chunk.tracking_id}`);
+        return false;
+      }
+
+      // Check 2: No double slashes in path (except after protocol)
+      if (url.includes("://") && url.split("://")[1].includes("//")) {
+        console.warn(
+          `  ⚠️  Skipping chunk ${index + 1}: Double slashes in path: ${url}`,
+        );
+        console.warn(`     Tracking ID: ${chunk.tracking_id}`);
+        return false;
+      }
+
+      // Check 3: No spaces or invalid characters
+      if (url.includes(" ") || /[\s\t\n\r]/.test(url)) {
+        console.warn(
+          `  ⚠️  Skipping chunk ${index + 1}: Whitespace in URL: ${url}`,
+        );
+        console.warn(`     Tracking ID: ${chunk.tracking_id}`);
+        return false;
+      }
+
+      return true;
+    }
+    return true; // Allow chunks without source_url
+  });
+
+  const skippedCount = uniqueChunks.length - validChunks.length;
+  if (skippedCount > 0) {
+    console.log(`  ⚠️  Skipped ${skippedCount} chunks with invalid URLs`);
+  }
+  console.log(`  ✓ ${validChunks.length} chunks validated`);
+
   // Upload chunks
-  if (uniqueChunks.length === 0) {
-    console.log("\n⚠️  No chunks to upload. Exiting.");
+  if (validChunks.length === 0) {
+    console.log("\n⚠️  No valid chunks to upload. Exiting.");
     process.exit(0);
   }
 
   const batchSize = parseInt(options.batchSize, 10);
   const upsert = options.upsert !== false; // upsert is true by default unless --no-upsert is passed
-  await uploadChunks(client, datasetId, uniqueChunks, batchSize, 3, upsert);
+  await uploadChunks(client, datasetId, validChunks, batchSize, 3, upsert);
 
   console.log("\n✨ Done!");
   process.exit(0);
