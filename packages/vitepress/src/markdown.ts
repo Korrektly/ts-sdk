@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { relative, normalize, resolve } from "node:path";
+import { normalize, relative, resolve } from "node:path";
 import type { ChunkInput } from "@korrektly/sdk";
 import { parseHTML } from "linkedom";
 import { marked } from "marked";
@@ -161,7 +161,9 @@ export async function extractChunksFromMarkdown(
     relativePath = normalize(relativePath).replace(/\\/g, "/");
 
     // Remove any leading ../ or ./ to ensure valid URLs
-    relativePath = relativePath.replace(/^(\.\.(\/|\\))+/, "").replace(/^\.\//, "");
+    relativePath = relativePath
+      .replace(/^(\.\.(\/|\\))+/, "")
+      .replace(/^\.\//, "");
 
     const hierarchy = extractHierarchy(relativePath);
     const slug = frontmatter.slug ?? relativePath.replace(/\.mdx?$/, "");

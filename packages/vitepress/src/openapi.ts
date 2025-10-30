@@ -91,8 +91,8 @@ export async function extractChunksFromOpenAPI(
         // Build hierarchy by splitting the apiPath
         // e.g., "docs/api-reference/api/operations" -> ["docs", "api", "operations", operationId]
         const pathParts = apiPath.split("/");
-        const hierarchyParts = pathParts.filter(part =>
-          part !== "api-reference"
+        const hierarchyParts = pathParts.filter(
+          (part) => part !== "api-reference",
         );
 
         const metadata: Record<string, string | number | boolean | string[]> = {
@@ -101,10 +101,7 @@ export async function extractChunksFromOpenAPI(
           path,
           endpoint,
           url: pageLink,
-          hierarchy: [
-            ...hierarchyParts,
-            operationId,
-          ],
+          hierarchy: [...hierarchyParts, operationId],
         };
 
         if (summary) metadata.summary = summary;

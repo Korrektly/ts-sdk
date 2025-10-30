@@ -95,16 +95,14 @@ async function uploadChunks(
         if (chunkIndexMatch && retries === 1) {
           const chunkIndex = parseInt(chunkIndexMatch[1], 10);
           if (chunkIndex < batch.length) {
-            console.error(
-              `\n  🔍 Problematic chunk at index ${chunkIndex}:`,
-            );
+            console.error(`\n  🔍 Problematic chunk at index ${chunkIndex}:`);
             console.error(
               `     source_url: ${batch[chunkIndex].source_url || "(none)"}`,
             );
+            console.error(`     tracking_id: ${batch[chunkIndex].tracking_id}`);
             console.error(
-              `     tracking_id: ${batch[chunkIndex].tracking_id}`,
+              `     chunk_html: ${batch[chunkIndex].chunk_html?.substring(0, 100)}...`,
             );
-            console.error(`     chunk_html: ${batch[chunkIndex].chunk_html?.substring(0, 100)}...`);
           }
         }
 
