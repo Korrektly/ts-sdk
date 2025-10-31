@@ -1,5 +1,11 @@
 # @korrektly/sdk
 
+## 0.1.4
+
+### Patch Changes
+
+- 02bc06f: Improve click tracking reliability in browser environments by using fetch with keepalive flag to ensure tracking requests complete even during page navigation or unload
+
 ## 0.1.3
 
 ### Patch Changes
