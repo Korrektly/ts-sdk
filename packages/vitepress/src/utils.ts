@@ -2,7 +2,29 @@ import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 /**
- * Parse .gitignore file and return patterns
+ * Parses a .gitignore file and returns an array of ignore patterns
+ *
+ * Reads the .gitignore file from the specified root directory and extracts
+ * all non-comment, non-empty lines as ignore patterns. These patterns are
+ * used to exclude files and directories from being processed during markdown
+ * extraction.
+ *
+ * Pattern processing:
+ * - Filters out empty lines and comments (lines starting with #)
+ * - Removes trailing slashes from directory patterns
+ * - Preserves wildcard patterns (*, **)
+ * - Returns empty array if .gitignore doesn't exist
+ *
+ * @param rootPath - The root directory path where .gitignore is located
+ * @returns Promise resolving to array of gitignore patterns (empty if file not found)
+ *
+ * @example
+ * ```typescript
+ * const patterns = await parseGitignore("/path/to/project");
+ * // Returns: ["node_modules", "dist", "*.log", ".env"]
+ * ```
+ *
+ * @private
  */
 async function parseGitignore(rootPath: string): Promise<string[]> {
   try {
@@ -26,7 +48,34 @@ async function parseGitignore(rootPath: string): Promise<string[]> {
 }
 
 /**
- * Check if a path matches any gitignore pattern
+ * Checks if a file path matches any gitignore pattern
+ *
+ * Implements gitignore pattern matching logic to determine if a file or directory
+ * should be excluded from processing. Supports exact matches, directory matches,
+ * wildcard patterns (*, **), and nested directory matching.
+ *
+ * Matching rules:
+ * - Exact match: "file.txt" matches "file.txt"
+ * - Directory match: "node_modules" matches "node_modules/package.json"
+ * - Wildcard single: "*.log" matches "error.log"
+ * - Wildcard recursive: "**\/test" matches "src/utils/test/file.js"
+ * - Parent directory: "dist" matches "docs/dist/index.html"
+ * - Negation patterns (starting with !) are currently skipped
+ *
+ * @param relativePath - The file path relative to the root directory
+ * @param patterns - Array of gitignore patterns to match against
+ * @returns `true` if the path matches any pattern and should be ignored, `false` otherwise
+ *
+ * @example
+ * ```typescript
+ * const patterns = ["node_modules", "*.log", "dist"];
+ * isIgnored("node_modules/package.json", patterns); // true
+ * isIgnored("src/index.ts", patterns); // false
+ * isIgnored("error.log", patterns); // true
+ * isIgnored("docs/dist/index.html", patterns); // true
+ * ```
+ *
+ * @private
  */
 function isIgnored(relativePath: string, patterns: string[]): boolean {
   for (const pattern of patterns) {

@@ -22,7 +22,28 @@ interface HeadingSection {
 }
 
 /**
- * Parse frontmatter and content from markdown file
+ * Parses YAML frontmatter and content from a markdown file
+ *
+ * Extracts frontmatter metadata enclosed in `---` delimiters at the beginning
+ * of the file. The frontmatter is parsed as YAML and returned along with the
+ * remaining content. If no frontmatter exists or parsing fails, returns an
+ * empty frontmatter object and the full file content.
+ *
+ * Frontmatter format:
+ * ```markdown
+ * ---
+ * title: Page Title
+ * description: Page description
+ * ---
+ * Content here...
+ * ```
+ *
+ * @param fileContent - The raw markdown file content as a string
+ * @returns Object containing parsed frontmatter and the remaining content
+ * @returns frontmatter - Parsed YAML metadata (empty object if none found)
+ * @returns content - Markdown content after frontmatter
+ *
+ * @private
  */
 function parseFrontmatter(fileContent: string): {
   frontmatter: Frontmatter;
@@ -49,7 +70,39 @@ function parseFrontmatter(fileContent: string): {
 }
 
 /**
- * Split HTML content into heading sections using linkedom
+ * Splits HTML content into logical sections based on heading elements
+ *
+ * This function parses HTML and divides it into sections, where each section
+ * consists of a heading (H1-H6) and its associated body content. The body
+ * includes all elements between the heading and the next heading. This enables
+ * chunk-based indexing where each heading and its content becomes a searchable unit.
+ *
+ * Uses linkedom for fast HTML parsing and DOM manipulation. Sections without
+ * headings are filtered out to ensure all chunks have meaningful titles.
+ *
+ * @param html - HTML string to be split into sections
+ * @returns Array of heading sections, each containing heading text, body content, and heading level
+ * @returns heading - The heading text (H1-H6)
+ * @returns body - The body content associated with this heading
+ * @returns level - The heading level (1-6)
+ *
+ * @example
+ * ```typescript
+ * const html = `
+ *   <h1>Introduction</h1>
+ *   <p>Welcome to the docs</p>
+ *   <h2>Getting Started</h2>
+ *   <p>Install the package</p>
+ * `;
+ * const sections = splitIntoSections(html);
+ * // Returns:
+ * // [
+ * //   { heading: "Introduction", body: "Welcome to the docs", level: 1 },
+ * //   { heading: "Getting Started", body: "Install the package", level: 2 }
+ * // ]
+ * ```
+ *
+ * @private
  */
 function splitIntoSections(html: string): HeadingSection[] {
   const { document } = parseHTML(

@@ -22,7 +22,45 @@ interface OpenAPISpec {
 }
 
 /**
- * Extract chunks from an OpenAPI specification
+ * Extracts searchable chunks from an OpenAPI specification file
+ *
+ * This function fetches and parses an OpenAPI/Swagger specification (JSON or YAML),
+ * dereferences all $ref pointers, and converts each API endpoint (path + method)
+ * into a searchable chunk for Korrektly. Each chunk contains the endpoint's
+ * metadata, documentation, and hierarchical organization.
+ *
+ * Processing steps:
+ * 1. Fetches the OpenAPI spec from the provided URL
+ * 2. Parses as JSON or YAML based on file extension
+ * 3. Dereferences all $ref pointers to resolve references
+ * 4. Iterates through all paths and HTTP methods
+ * 5. Generates chunks with metadata, tags, and hierarchical structure
+ *
+ * Each chunk includes:
+ * - Method and endpoint path (e.g., "GET /users")
+ * - Summary and description from the spec
+ * - Operation ID as tracking_id
+ * - Tags for categorization
+ * - Hierarchical metadata for navigation
+ * - Source URL pointing to the API reference page
+ *
+ * @param specUrl - URL of the OpenAPI specification file (supports .json and .yaml/.yml)
+ * @param siteUrl - Base URL of the documentation site (e.g., "https://docs.example.com")
+ * @param apiRefParent - Path prefix for API reference pages (default: "api")
+ * @returns Promise resolving to array of chunk objects for each API endpoint
+ *
+ * @example
+ * ```typescript
+ * const chunks = await extractChunksFromOpenAPI(
+ *   "https://api.example.com/openapi.json",
+ *   "https://docs.example.com",
+ *   "api-reference/operations"
+ * );
+ * // Generates chunks like:
+ * // - source_url: https://docs.example.com/api-reference/operations/getUser
+ * // - tracking_id: getUser
+ * // - tag_set: ["openapi-route", "getUser", "get", "users"]
+ * ```
  */
 export async function extractChunksFromOpenAPI(
   specUrl: string,
