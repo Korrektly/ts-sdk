@@ -35,19 +35,28 @@ function isIgnored(relativePath: string, patterns: string[]): boolean {
       continue;
     }
 
+    // Remove leading slash if present (gitignore syntax)
+    const cleanPattern = pattern.startsWith("/") ? pattern.slice(1) : pattern;
+
     // Exact match
-    if (relativePath === pattern) {
+    if (relativePath === cleanPattern) {
       return true;
     }
 
     // Directory match (e.g., node_modules matches node_modules/*)
-    if (relativePath.startsWith(`${pattern}/`)) {
+    // This handles both "node_modules" and "node_modules/" patterns
+    if (relativePath.startsWith(`${cleanPattern}/`)) {
+      return true;
+    }
+
+    // Also check if the pattern itself ends with / and matches as a directory
+    if (pattern.endsWith("/") && relativePath.startsWith(cleanPattern)) {
       return true;
     }
 
     // Wildcard patterns
-    if (pattern.includes("*")) {
-      const regexPattern = pattern
+    if (cleanPattern.includes("*")) {
+      const regexPattern = cleanPattern
         .replace(/\./g, "\\.")
         .replace(/\*\*/g, ".*")
         .replace(/\*/g, "[^/]*");
@@ -56,12 +65,25 @@ function isIgnored(relativePath: string, patterns: string[]): boolean {
       if (regex.test(relativePath)) {
         return true;
       }
+
+      // Also try matching with /** appended for directory patterns
+      const dirRegex = new RegExp(`^${regexPattern}/.*$`);
+      if (dirRegex.test(relativePath)) {
+        return true;
+      }
     }
 
-    // Check if any parent directory matches
+    // Check if any parent directory or the directory itself matches
     const parts = relativePath.split("/");
     for (let i = 0; i < parts.length; i++) {
-      if (parts[i] === pattern) {
+      const part = parts[i];
+      // Match exact directory name
+      if (part === cleanPattern) {
+        return true;
+      }
+      // Match path prefix (e.g., "dist" matches "docs/dist/foo.md")
+      const pathPrefix = parts.slice(0, i + 1).join("/");
+      if (pathPrefix === cleanPattern) {
         return true;
       }
     }
