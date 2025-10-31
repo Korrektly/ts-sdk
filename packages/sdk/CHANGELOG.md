@@ -1,5 +1,11 @@
 # @korrektly/sdk
 
+## 0.1.3
+
+### Patch Changes
+
+- b12c7c7: Add click tracking API support with trackClick() method to record user clicks on search results for CTR analytics
+
 ## 0.1.2
 
 ### Patch Changes
