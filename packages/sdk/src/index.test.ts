@@ -4,6 +4,7 @@ import type {
   AutocompleteContentOnlyResponse,
   AutocompleteResponse,
   ChunkResponse,
+  ClickTrackingResponse,
   SearchResponse,
 } from "./types";
 
@@ -71,6 +72,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -101,6 +103,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -131,6 +134,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -178,6 +182,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -234,6 +239,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -277,6 +283,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -304,6 +311,7 @@ describe("Korrektly", () => {
         data: {
           query: "test query",
           total_results: 2,
+          search_query_id: "query-id",
           results: [
             {
               id: "result-1",
@@ -359,6 +367,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -388,6 +397,7 @@ describe("Korrektly", () => {
         data: {
           query: "semantic query",
           total_results: 1,
+          search_query_id: "query-id",
           results: [
             {
               id: "result-1",
@@ -419,6 +429,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -445,6 +456,7 @@ describe("Korrektly", () => {
         data: {
           query: "filtered query",
           total_results: 1,
+          search_query_id: "query-id",
           results: [
             {
               id: "result-1",
@@ -476,6 +488,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => mockResponse,
       } as unknown as Response);
 
@@ -554,6 +567,7 @@ describe("Korrektly", () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({ success: true, data: { results: [] } }),
       } as unknown as Response);
 
@@ -563,6 +577,245 @@ describe("Korrektly", () => {
         `http://localhost:8000/api/v1/datasets/${mockDatasetId}/search`,
         expect.any(Object),
       );
+    });
+  });
+
+  describe("trackClick", () => {
+    test("should track click with all required fields", async () => {
+      const searchQueryId = "550e8400-e29b-41d4-a716-446655440000";
+      const chunkId = "660e8400-e29b-41d4-a716-446655440000";
+      const position = 0;
+
+      const mockResponse: ClickTrackingResponse = {
+        success: true,
+        data: {
+          message: "Click tracked successfully",
+          search_query_id: searchQueryId,
+          chunk_id: chunkId,
+          position: position,
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockResponse,
+      } as unknown as Response);
+
+      const result = await client.trackClick(mockDatasetId, {
+        search_query_id: searchQueryId,
+        chunk_id: chunkId,
+        position: position,
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://korrektly.com/api/v1/datasets/${mockDatasetId}/clicks`,
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${mockApiToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            search_query_id: searchQueryId,
+            chunk_id: chunkId,
+            position: position,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockResponse);
+      expect(result.data.message).toBe("Click tracked successfully");
+      expect(result.data.search_query_id).toBe(searchQueryId);
+      expect(result.data.chunk_id).toBe(chunkId);
+      expect(result.data.position).toBe(position);
+    });
+
+    test("should track click without optional position field", async () => {
+      const searchQueryId = "550e8400-e29b-41d4-a716-446655440000";
+      const chunkId = "660e8400-e29b-41d4-a716-446655440000";
+
+      const mockResponse: ClickTrackingResponse = {
+        success: true,
+        data: {
+          message: "Click tracked successfully",
+          search_query_id: searchQueryId,
+          chunk_id: chunkId,
+          position: null,
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockResponse,
+      } as unknown as Response);
+
+      const result = await client.trackClick(mockDatasetId, {
+        search_query_id: searchQueryId,
+        chunk_id: chunkId,
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://korrektly.com/api/v1/datasets/${mockDatasetId}/clicks`,
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${mockApiToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            search_query_id: searchQueryId,
+            chunk_id: chunkId,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockResponse);
+      expect(result.data.position).toBeNull();
+    });
+
+    test("should handle click tracking error responses", async () => {
+      const searchQueryId = "550e8400-e29b-41d4-a716-446655440000";
+      const chunkId = "660e8400-e29b-41d4-a716-446655440000";
+
+      const mockErrorResponse = {
+        message: "The search query does not belong to this dataset.",
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: "Forbidden",
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockErrorResponse,
+      } as unknown as Response);
+
+      await expect(
+        client.trackClick(mockDatasetId, {
+          search_query_id: searchQueryId,
+          chunk_id: chunkId,
+          position: 0,
+        }),
+      ).rejects.toThrow(/403 Forbidden/);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test("should handle validation errors (422)", async () => {
+      const mockErrorResponse = {
+        message: "The search query ID is required.",
+        errors: {
+          search_query_id: ["The search query ID is required."],
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 422,
+        statusText: "Unprocessable Entity",
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockErrorResponse,
+      } as unknown as Response);
+
+      await expect(
+        client.trackClick(mockDatasetId, {
+          search_query_id: "",
+          chunk_id: "660e8400-e29b-41d4-a716-446655440000",
+        }),
+      ).rejects.toThrow(/422 Unprocessable Entity/);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test("should integrate with search workflow", async () => {
+      const searchQueryId = "550e8400-e29b-41d4-a716-446655440000";
+      const chunkId = "660e8400-e29b-41d4-a716-446655440000";
+
+      // Mock search response with search_query_id
+      const mockSearchResponse: SearchResponse = {
+        success: true,
+        data: {
+          query: "authentication tutorial",
+          total_results: 1,
+          search_query_id: searchQueryId,
+          results: [
+            {
+              id: chunkId,
+              content: "Getting started with authentication...",
+              content_html: "<p>Getting started with authentication...</p>",
+              source_type: "api",
+              source_url: "https://example.com/auth-guide",
+              weight: 1.0,
+              tag_set: ["tutorial", "auth"],
+              timestamp: null,
+              num_value: null,
+              group: null,
+              scores: {
+                hybrid: 0.9234,
+                dense: 0.85,
+                sparse: 0.92,
+                fulltext: 0.88,
+              },
+              ranks: {
+                dense: 1,
+                sparse: 1,
+                fulltext: 1,
+              },
+              metadata: [],
+            },
+          ],
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockSearchResponse,
+      } as unknown as Response);
+
+      // Perform search
+      const searchResult = await client.search(mockDatasetId, {
+        query: "authentication tutorial",
+        track_query: true,
+      });
+
+      expect(searchResult.data.search_query_id).toBe(searchQueryId);
+
+      // Extract search_query_id (verified above to be defined)
+      const searchQueryIdFromSearch = searchResult.data.search_query_id;
+      if (!searchQueryIdFromSearch) {
+        throw new Error("search_query_id should be defined");
+      }
+
+      // Mock click tracking response
+      const mockClickResponse: ClickTrackingResponse = {
+        success: true,
+        data: {
+          message: "Click tracked successfully",
+          search_query_id: searchQueryId,
+          chunk_id: chunkId,
+          position: 0,
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockClickResponse,
+      } as unknown as Response);
+
+      // Track click on first result
+      const clickResult = await client.trackClick(mockDatasetId, {
+        search_query_id: searchQueryIdFromSearch,
+        chunk_id: searchResult.data.results[0].id,
+        position: 0,
+      });
+
+      expect(clickResult.success).toBe(true);
+      expect(clickResult.data.search_query_id).toBe(searchQueryId);
+      expect(clickResult.data.chunk_id).toBe(chunkId);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -418,9 +418,55 @@ export interface SearchResponse {
     /** Total number of results returned */
     total_results: number;
 
+    /** Search query UUID for click tracking (present when track_query is true) */
+    search_query_id?: string;
+
     /** Array of search results */
     results: SearchResult[];
   };
+}
+
+// ============================================================================
+// CLICK TRACKING ENDPOINT
+// ============================================================================
+
+/**
+ * Request body for POST /api/v1/datasets/{dataset}/clicks
+ */
+export interface ClickTrackingRequest {
+  /** Search query UUID from search response */
+  search_query_id: string;
+
+  /** Chunk UUID that was clicked */
+  chunk_id: string;
+
+  /** Zero-indexed position of clicked result (0 = first result) */
+  position?: number;
+}
+
+/**
+ * Click tracking data in response
+ */
+export interface ClickTrackingData {
+  /** Success message */
+  message: string;
+
+  /** Search query UUID that was tracked */
+  search_query_id: string;
+
+  /** Chunk UUID that was clicked */
+  chunk_id: string;
+
+  /** Position of the clicked result */
+  position: number | null;
+}
+
+/**
+ * Response format for click tracking endpoint
+ */
+export interface ClickTrackingResponse {
+  success: true;
+  data: ClickTrackingData;
 }
 
 // ============================================================================

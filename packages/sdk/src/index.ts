@@ -3,6 +3,8 @@ import type {
   AutocompleteResponseUnion,
   ChunkRequest,
   ChunkResponse,
+  ClickTrackingRequest,
+  ClickTrackingResponse,
   KorrektlyConfig,
   SearchRequest,
   SearchResponse,
@@ -279,6 +281,56 @@ export class Korrektly {
   ): Promise<SearchResponse> {
     return this.request<SearchResponse>(
       `/api/v1/datasets/${datasetId}/search`,
+      "POST",
+      request,
+    );
+  }
+
+  /**
+   * Track a click on a search result
+   *
+   * Records user clicks on search results to power Click-Through Rate (CTR) analytics
+   * and improve search result quality. Use the search_query_id from search responses
+   * along with the clicked chunk_id and position.
+   *
+   * @param datasetId - UUID of the dataset
+   * @param request - Click tracking request
+   * @param request.search_query_id - UUID from search response (when track_query was true)
+   * @param request.chunk_id - UUID of the clicked chunk
+   * @param request.position - Zero-indexed position of result (0 = first result)
+   * @returns Promise resolving to click tracking confirmation
+   *
+   * @example
+   * ```typescript
+   * // Step 1: Perform a search
+   * const searchResponse = await client.search('dataset-id', {
+   *   query: 'authentication tutorial',
+   *   limit: 10,
+   *   track_query: true  // This is the default
+   * });
+   *
+   * const { search_query_id, results } = searchResponse.data;
+   *
+   * // Step 2: Track when user clicks on the first result
+   * await client.trackClick('dataset-id', {
+   *   search_query_id: search_query_id,
+   *   chunk_id: results[0].id,
+   *   position: 0
+   * });
+   *
+   * // Without position (optional)
+   * await client.trackClick('dataset-id', {
+   *   search_query_id: search_query_id,
+   *   chunk_id: results[0].id
+   * });
+   * ```
+   */
+  async trackClick(
+    datasetId: string,
+    request: ClickTrackingRequest,
+  ): Promise<ClickTrackingResponse> {
+    return this.request<ClickTrackingResponse>(
+      `/api/v1/datasets/${datasetId}/clicks`,
       "POST",
       request,
     );
