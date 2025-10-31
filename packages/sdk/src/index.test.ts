@@ -12,6 +12,7 @@ import type {
 const mockFetch = mock(() =>
   Promise.resolve({
     ok: true,
+    headers: new Headers({ "content-type": "application/json" }),
     json: async () => ({}),
   }),
 );
