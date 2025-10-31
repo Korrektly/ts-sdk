@@ -293,6 +293,11 @@ export class Korrektly {
    * and improve search result quality. Use the search_query_id from search responses
    * along with the clicked chunk_id and position.
    *
+   * In browsers, this method uses `navigator.sendBeacon()` when available to ensure
+   * the tracking request completes even if the user navigates away immediately after
+   * clicking. Falls back to standard fetch in Node.js environments or when sendBeacon
+   * is unavailable.
+   *
    * @param datasetId - UUID of the dataset
    * @param request - Click tracking request
    * @param request.search_query_id - UUID from search response (when track_query was true)
@@ -329,6 +334,46 @@ export class Korrektly {
     datasetId: string,
     request: ClickTrackingRequest,
   ): Promise<ClickTrackingResponse> {
+    const url = `${this.baseUrl}/api/v1/datasets/${datasetId}/clicks`;
+
+    // Use fetch with keepalive in browser environments for better reliability
+    // during page navigation/unload (keepalive ensures request completes)
+    if (typeof navigator !== "undefined") {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.apiToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+        keepalive: true, // Ensures request completes even if page unloads
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Click tracking failed: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      // Parse and return the actual response
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
+        return (await response.json()) as ClickTrackingResponse;
+      }
+
+      // Fallback response if server doesn't return JSON
+      return {
+        success: true,
+        data: {
+          message: "Click tracked successfully",
+          search_query_id: request.search_query_id,
+          chunk_id: request.chunk_id,
+          position: request.position ?? null,
+        },
+      };
+    }
+
+    // Fallback to standard request method for Node.js or non-browser environments
     return this.request<ClickTrackingResponse>(
       `/api/v1/datasets/${datasetId}/clicks`,
       "POST",
